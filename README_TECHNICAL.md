@@ -364,16 +364,14 @@ const DEBUG_MODE = true; // in helpers.js
 - Test across multiple browsers
 - Document API changes
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
 - OpenAI for the original Whisper model
-- ggml-org for the whisper.cpp implementation
+- [ggml-org for the whisper.cpp implementation](https://github.com/ggml-org/whisper.cpp)
 - Emscripten team for WebAssembly toolchain
-- Community contributors and testers
+- [Community contributors and testers](https://ggml.ai/whisper.cpp/)
+- [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp)
 
 ---
 
