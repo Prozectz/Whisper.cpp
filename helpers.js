@@ -6,23 +6,22 @@ function convertTypedArray(src, type) {
   return new type(buffer);
 }
 
-var printTextarea = (function () {
+var printTextarea = function (text) {
   var element = document.getElementById("output");
-  if (element) element.value = ""; // clear browser cache
-  return function (text) {
-    // Filter out static messages to make console truly dynamic
-    if (text === "js: Running..." || text === "js:" || text.trim() === "js:") {
-      return; // Skip these static messages
-    }
-    if (arguments.length > 1)
-      text = Array.prototype.slice.call(arguments).join(" ");
-    console.log("printTextarea:", text); // Debug log
-    if (element) {
-      element.value += text + "\n";
-      element.scrollTop = element.scrollHeight; // focus on bottom
-    }
-  };
-})();
+  console.log("printTextarea called with:", text);
+  console.log("Element found:", !!element);
+
+  if (arguments.length > 1)
+    text = Array.prototype.slice.call(arguments).join(" ");
+
+  if (element) {
+    element.value += text + "\n";
+    element.scrollTop = element.scrollHeight; // focus on bottom
+    console.log("Text added successfully. Current content:", element.value);
+  } else {
+    console.log("ERROR: output element not found!");
+  }
+};
 
 async function clearCache() {
   if (

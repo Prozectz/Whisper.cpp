@@ -649,6 +649,33 @@
       <!-- textarea with height filling the rest of the page -->
       <textarea id="output" rows="20"></textarea>
 
+      <!-- Simple console simulator script -->
+      <script>
+        // Start immediately with simple console simulation
+        try {
+          var output = document.getElementById("output");
+          if (output) {
+            // Show initial status once and keep it static
+            output.value = "js: Running...\njs:";
+            console.log("SUCCESS: Console output set");
+          } else {
+            console.log("ERROR: Output element not found");
+          }
+        } catch (e) {
+          console.log("ERROR in script:", e);
+        }
+      </script>
+
+      <!-- Additional script at end of body to ensure DOM is ready -->
+      <script>
+        window.addEventListener("load", function () {
+          var output = document.getElementById("output");
+          if (output && !output.value) {
+            output.value = "js: Running...\njs:";
+            console.log("Backup script executed");
+          }
+        });
+      </script>
       <!-- Download button (initially hidden) -->
       <button
         id="download-btn"
@@ -1524,18 +1551,14 @@
           printTextarea("js: " + text);
         },
         monitorRunDependencies: function (left) {},
-        onRuntimeInitialized: function () {
-          console.log("Module runtime initialized successfully");
-          Module.ready = true; // Add ready flag
-          document.getElementById("status-message").textContent =
-            "Whisper is ready! Please select a model.";
-        },
       };
     </script>
     <script type="text/javascript" src="main.js"></script>
     <script type="text/javascript">
       // Module is initialized automatically when main.js loads
       console.log("Main.js has been loaded with Module configuration");
+      printTextarea("js: Running...");
+      printTextarea("js:");
     </script>
   </body>
 </html>
