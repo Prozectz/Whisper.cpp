@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>whisper.cpp : WASM example</title>
+
+    <style>
+      #output {
+        width: 100%;
+        height: 100%;
+        margin: 0 auto;
+        margin-top: 10px;
+        border-left: 0px;
+        border-right: 0px;
+        padding-left: 0px;
+        padding-right: 0px;
+        display: block;
+        background-color: black;
+        color: white;
+        font-size: 10px;
+        font-family: "Lucida Console", Monaco, monospace;
+        outline: none;
+        white-space: pre;
+        overflow-wrap: normal;
+        overflow-x: scroll;
+      }
+    </style>
+    <script>
+      // Enable SharedArrayBuffer for whisper.cpp
+      if (typeof SharedArrayBuffer === "undefined") {
+        // Register service worker for cross-origin isolation
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("coi-serviceworker.js");
+        }
+      }
+    </script>
+    <script src="coi-serviceworker.js"></script>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div id="main-container">
+      <b
+        >Free Online Whisper.cpp - AI Speech-to-Text Transcription
+        <a href="https://github.com/ggerganov/whisper.cpp">whisper.cpp</a>
+        running fully in your browser</b
+      >
+
+      <br /><br />
+
+      <div
+        style="
+          background: #f0f8ff;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        "
+      >
+        <h3>Usage Instructions:</h3>
+        <ol>
+          <li>
+            <strong>Load a Model:</strong> Choose from the models below or
+            upload your own ggml file
+          </li>
+          <li>
+            <strong>Upload Audio:</strong> Select any supported audio file (see
+            formats below)
+          </li>
+          <li>
+            <strong>Transcribe:</strong> Click "Transcribe" to convert speech to
+            text
+          </li>
+          <li>
+            <strong>Download:</strong> Save your transcription as a text file
+            with timestamps
+          </li>
+        </ol>
+      </div>
+
+      <div
+        style="
+          background: #e8f5e8;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        "
+      >
+        <h3>Supported Audio Formats:</h3>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+          "
+        >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.wav</strong></span
+          >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.mp3</strong></span
+          >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.mp4</strong></span
+          >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.m4a</strong></span
+          >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.ogg</strong></span
+          >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.webm</strong></span
+          >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.flac</strong></span
+          >
+          <span
+            style="
+              background: #fff;
+              padding: 8px;
+              border-radius: 4px;
+              text-align: center;
+            "
+            ><strong>.aac</strong></span
+          >
+        </div>
+        <p style="margin-top: 10px; font-size: 14px; color: #666">
+          <em
+            >Note: All audio formats are automatically converted to the required
+            format for processing.</em
+          >
+        </p>
+      </div>
+
+      <div
+        style="
+          background: #fff3e0;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        "
+      >
+        <h3>Available Models & Performance:</h3>
+        <div style="overflow-x: auto">
+          <table
+            style="width: 100%; border-collapse: collapse; margin-top: 10px"
+          >
+            <thead>
+              <tr style="background: #f5f5f5">
+                <th
+                  style="padding: 8px; border: 1px solid #ddd; text-align: left"
+                >
+                  Model
+                </th>
+                <th
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Size
+                </th>
+                <th
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Speed
+                </th>
+                <th
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Quality
+                </th>
+                <th
+                  style="padding: 8px; border: 1px solid #ddd; text-align: left"
+                >
+                  Best For
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  <strong>tiny.en</strong>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  75 MB
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Fast
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Basic
+                </td>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  Quick tests, English only
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  <strong>base.en</strong>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  142 MB
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Good
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Good
+                </td>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  Good balance, English only
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  <strong>small.en</strong>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  466 MB
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Slow
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  High
+                </td>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  High accuracy, English only
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  <strong>base (multilingual)</strong>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  142 MB
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Good
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Good
+                </td>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  99+ languages supported
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  <strong>large (multilingual)</strong>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  1030 MB
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Slowest
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                  "
+                >
+                  Best
+                </td>
+                <td style="padding: 8px; border: 1px solid #ddd">
+                  Best quality, all languages
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px; font-size: 14px; color: #666">
+          <em
+            >Recommendation: Start with <strong>base.en</strong> for English or
+            <strong>base</strong> for other languages.</em
+          >
+        </p>
+      </div>
+
+      <div
+        style="
+          background: #f5f5f5;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        "
+      >
+        <h3>Supported Audio Formats:</h3>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+          "
+        >
+          <span><strong>WAV</strong> (.wav)</span>
+          <span><strong>MP3</strong> (.mp3)</span>
+          <span><strong>FLAC</strong> (.flac)</span>
+          <span><strong>M4A</strong> (.m4a)</span>
+          <span><strong>AAC</strong> (.aac)</span>
+          <span><strong>OGG</strong> (.ogg)</span>
+          <span><strong>WMA</strong> (.wma)</span>
+          <span><strong>WEBM</strong> (.webm)</span>
+        </div>
+        <p style="margin-top: 10px; font-size: 12px; color: #666">
+          <em>Note: Files are processed locally in your browser for privacy</em>
+        </p>
+      </div>
+
+      <div
+        style="
+          background: #fff5ee;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        "
+      >
+        <h3>Available AI Models:</h3>
+        <table style="width: 100%; border-collapse: collapse">
+          <thead>
+            <tr style="background: #f0f0f0">
+              <th
+                style="padding: 8px; border: 1px solid #ddd; text-align: left"
+              >
+                Model
+              </th>
+              <th
+                style="padding: 8px; border: 1px solid #ddd; text-align: left"
+              >
+                Size
+              </th>
+              <th
+                style="padding: 8px; border: 1px solid #ddd; text-align: left"
+              >
+                Speed
+              </th>
+              <th
+                style="padding: 8px; border: 1px solid #ddd; text-align: left"
+              >
+                Quality
+              </th>
+              <th
+                style="padding: 8px; border: 1px solid #ddd; text-align: left"
+              >
+                Best For
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                <strong>tiny.en</strong>
+              </td>
+              <td style="padding: 8px; border: 1px solid #ddd">75 MB</td>
+              <td style="padding: 8px; border: 1px solid #ddd">Fastest</td>
+              <td style="padding: 8px; border: 1px solid #ddd">Basic</td>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                Quick testing, clear speech
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                <strong>base.en</strong>
+              </td>
+              <td style="padding: 8px; border: 1px solid #ddd">142 MB</td>
+              <td style="padding: 8px; border: 1px solid #ddd">Fast</td>
+              <td style="padding: 8px; border: 1px solid #ddd">Good</td>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                General use, good balance
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                <strong>small.en</strong>
+              </td>
+              <td style="padding: 8px; border: 1px solid #ddd">466 MB</td>
+              <td style="padding: 8px; border: 1px solid #ddd">Moderate</td>
+              <td style="padding: 8px; border: 1px solid #ddd">High</td>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                Professional transcription
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                <strong>medium/large</strong>
+              </td>
+              <td style="padding: 8px; border: 1px solid #ddd">515MB+</td>
+              <td style="padding: 8px; border: 1px solid #ddd">Slow</td>
+              <td style="padding: 8px; border: 1px solid #ddd">Best</td>
+              <td style="padding: 8px; border: 1px solid #ddd">
+                Highest accuracy needed
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin-top: 10px; font-size: 12px; color: #666">
+          <em
+            >Recommendation: Start with <strong>base.en</strong> for best
+            speed/quality balance</em
+          >
+        </p>
+      </div>
+
+      <hr />
+
+      <div id="status" style="margin-bottom: 10px">
+        <strong>Status:</strong>
+        <span id="status-message">Whisper not loaded</span>
+      </div>
+
+      <div id="model">
+        <strong>Whisper models:</strong> <span id="model-whisper-status"></span
+        ><br /><br />
+        <button id="fetch-whisper-tiny-en" onclick="loadWhisper('tiny.en')">
+          tiny.en (75 MB)
+        </button>
+        <button id="fetch-whisper-tiny" onclick="loadWhisper('tiny')">
+          tiny (75 MB)
+        </button>
+        <button id="fetch-whisper-base-en" onclick="loadWhisper('base.en')">
+          base.en (142 MB)
+        </button>
+        <button id="fetch-whisper-base" onclick="loadWhisper('base')">
+          base (142 MB)
+        </button>
+        <button id="fetch-whisper-small-en" onclick="loadWhisper('small.en')">
+          small.en (466 MB)
+        </button>
+        <button id="fetch-whisper-small" onclick="loadWhisper('small')">
+          small (466 MB)
+        </button>
+        <input
+          type="file"
+          id="whisper-file"
+          name="file"
+          onchange="loadFile(event, 'whisper.bin')"
+        />
+        <br /><br />
+        <strong>Quantized models:</strong><br /><br />
+        <button
+          id="fetch-whisper-tiny-en-q5_1"
+          onclick="loadWhisper('tiny-en-q5_1')"
+        >
+          tiny.en (Q5_1, 31 MB)
+        </button>
+        <button id="fetch-whisper-tiny-q5_1" onclick="loadWhisper('tiny-q5_1')">
+          tiny (Q5_1, 31 MB)
+        </button>
+        <button
+          id="fetch-whisper-base-en-q5_1"
+          onclick="loadWhisper('base-en-q5_1')"
+        >
+          base.en (Q5_1, 57 MB)
+        </button>
+        <button id="fetch-whisper-base-q5_1" onclick="loadWhisper('base-q5_1')">
+          base (Q5_1, 57 MB)
+        </button>
+        <button
+          id="fetch-whisper-small-en-q5_1"
+          onclick="loadWhisper('small-en-q5_1')"
+        >
+          small.en (Q5_1, 182 MB)
+        </button>
+        <button
+          id="fetch-whisper-small-q5_1"
+          onclick="loadWhisper('small-q5_1')"
+        >
+          small (Q5_1, 182 MB)</button
+        ><br />
+        <button
+          id="fetch-whisper-medium-en-q5_0"
+          onclick="loadWhisper('medium-en-q5_0')"
+        >
+          medium.en (Q5_0, 515 MB)
+        </button>
+        <button
+          id="fetch-whisper-medium-q5_0"
+          onclick="loadWhisper('medium-q5_0')"
+        >
+          medium (Q5_0, 515 MB)
+        </button>
+        <button
+          id="fetch-whisper-large-q5_0"
+          onclick="loadWhisper('large-q5_0')"
+        >
+          large (Q5_0, 1030 MB)
+        </button>
+        <span id="fetch-whisper-progress"></span>
+      </div>
+
+      <br />
+
+      <!-- radio button to select between file upload or microphone -->
+      <div id="input">
+        Input:
+        <input
+          type="radio"
+          id="file"
+          name="input"
+          value="file"
+          checked="checked"
+          onchange="changeInput('file')"
+        />
+        <label for="file">File</label>
+        <input
+          type="radio"
+          id="mic"
+          name="input"
+          value="mic"
+          onchange="changeInput('mic')"
+        />
+        <label for="mic">Microphone</label>
+      </div>
+
+      <br />
+
+      <div id="input_file">
+        <strong>Upload Audio File:</strong>
+        <input
+          type="file"
+          id="file"
+          name="file"
+          onchange="loadAudio(event)"
+          accept="audio/*,.wav,.mp3,.flac,.m4a,.aac,.ogg,.wma,.webm"
+          style="margin: 10px 0"
+        />
+        <br />
+        <small style="color: #666">
+          <em
+            >Supports: WAV, MP3, FLAC, M4A, AAC, OGG, WMA, WEBM | Max
+            recommended: 100MB | Max length: ~30 minutes</em
+          >
+        </small>
+        <p style="margin-top: 15px; font-size: 16px">
+          <strong
+            >Click on the "Transcribe" button to start the transcription</strong
+          >
+        </p>
+        <p style="margin-top: 10px; font-size: 14px; color: #666">
+          <em
+            >Note that the computation is quite heavy and may take a few seconds
+            to complete. The transcription results will be displayed in the text
+            area below.</em
+          >
+        </p>
+      </div>
+
+      <div id="input_mic" style="display: none">
+        Microphone:
+        <button id="start" onclick="startRecording()">Start</button>
+        <button id="stop" onclick="stopRecording()" disabled>Stop</button>
+
+        <!-- progress bar to show recording progress -->
+        <br /><br />
+        <div id="progress" style="display: none">
+          <div
+            id="progress-bar"
+            style="width: 0%; height: 10px; background-color: #4caf50"
+          ></div>
+          <div id="progress-text">0%</div>
+        </div>
+      </div>
+
+      <audio controls="controls" id="audio" loop hidden>
+        Your browser does not support the &lt;audio&gt; tag.
+        <source id="source" src="" type="audio/wav" />
+      </audio>
+
+      <hr />
+      <br />
+
+      <table>
+        <tr>
+          <td>
+            Language:
+            <select id="language" name="language">
+              <option value="en">English</option>
+              <option value="ar">Arabic</option>
+              <option value="hy">Armenian</option>
+              <option value="az">Azerbaijani</option>
+              <option value="eu">Basque</option>
+              <option value="be">Belarusian</option>
+              <option value="bn">Bengali</option>
+              <option value="bg">Bulgarian</option>
+              <option value="ca">Catalan</option>
+              <option value="zh">Chinese</option>
+              <option value="hr">Croatian</option>
+              <option value="cs">Czech</option>
+              <option value="da">Danish</option>
+              <option value="nl">Dutch</option>
+              <option value="en">English</option>
+              <option value="et">Estonian</option>
+              <option value="tl">Filipino</option>
+              <option value="fi">Finnish</option>
+              <option value="fr">French</option>
+              <option value="gl">Galician</option>
+              <option value="ka">Georgian</option>
+              <option value="de">German</option>
+              <option value="el">Greek</option>
+              <option value="gu">Gujarati</option>
+              <option value="iw">Hebrew</option>
+              <option value="hi">Hindi</option>
+              <option value="hu">Hungarian</option>
+              <option value="is">Icelandic</option>
+              <option value="id">Indonesian</option>
+              <option value="ga">Irish</option>
+              <option value="it">Italian</option>
+              <option value="ja">Japanese</option>
+              <option value="kn">Kannada</option>
+              <option value="ko">Korean</option>
+              <option value="la">Latin</option>
+              <option value="lv">Latvian</option>
+              <option value="lt">Lithuanian</option>
+              <option value="mk">Macedonian</option>
+              <option value="ms">Malay</option>
+              <option value="mt">Maltese</option>
+              <option value="no">Norwegian</option>
+              <option value="fa">Persian</option>
+              <option value="pl">Polish</option>
+              <option value="pt">Portuguese</option>
+              <option value="ro">Romanian</option>
+              <option value="ru">Russian</option>
+              <option value="sr">Serbian</option>
+              <option value="sk">Slovak</option>
+              <option value="sl">Slovenian</option>
+              <option value="es">Spanish</option>
+              <option value="sw">Swahili</option>
+              <option value="sv">Swedish</option>
+              <option value="ta">Tamil</option>
+              <option value="te">Telugu</option>
+              <option value="th">Thai</option>
+              <option value="tr">Turkish</option>
+              <option value="uk">Ukrainian</option>
+              <option value="ur">Urdu</option>
+              <option value="vi">Vietnamese</option>
+              <option value="cy">Welsh</option>
+              <option value="yi">Yiddish</option>
+            </select>
+          </td>
+          <!-- Slider to select number of threads between 1 and 16 -->
+          <td>
+            Threads:
+            <input
+              type="range"
+              id="threads"
+              name="threads"
+              min="1"
+              max="16"
+              value="8"
+              onchange="changeThreads(this.value)"
+            />
+            <span id="threads-value">8</span>
+          </td>
+          <td>
+            <button onclick="onProcess(false);">Transcribe</button>
+          </td>
+          <td>
+            <button onclick="onProcess(true);">Translate</button>
+          </td>
+        </tr>
+      </table>
+
+      <br />
+
+      <!-- textarea with height filling the rest of the page -->
+      <textarea id="output" rows="20"></textarea>
+
+      <!-- Download button (initially hidden) -->
+      <button
+        id="download-btn"
+        style="
+          display: none;
+          margin-top: 10px;
+          background: #28a745;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        "
+      >
+        Download Transcribe
+      </button>
+
+      <br /><br />
+
+      <!-- Information Footer -->
+      <div
+        style="
+          background: #f8f9fa;
+          padding: 20px;
+          margin-top: 30px;
+          border-radius: 8px;
+          border-top: 3px solid #007bff;
+        "
+      >
+        <h3>About This Service</h3>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+          "
+        >
+          <div>
+            <h4>Privacy & Security</h4>
+            <ul style="font-size: 14px">
+              <li>All processing happens in your browser</li>
+              <li>No files uploaded to servers</li>
+              <li>Your audio never leaves your device</li>
+              <li>No registration or login required</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Performance Tips</h4>
+            <ul style="font-size: 14px">
+              <li>Use <strong>base.en</strong> for best balance</li>
+              <li>Works best on desktop browsers</li>
+              <li>Requires WASM SIMD support</li>
+              <li>Longer files = more processing time</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Free & Open Source</h4>
+            <ul style="font-size: 14px">
+              <li>Completely free to use</li>
+              <li>Based on OpenAI Whisper</li>
+              <li>Powered by whisper.cpp</li>
+              <li>Open source on GitHub</li>
+            </ul>
+          </div>
+          <div>
+            <h4>More Examples</h4>
+            <ul style="font-size: 14px">
+              <li>
+                <a
+                  href="https://github.com/ggerganov/whisper.cpp/tree/master/examples/bench"
+                  target="_blank"
+                  >bench</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/ggerganov/whisper.cpp/tree/master/examples/stream"
+                  target="_blank"
+                  >stream</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/ggerganov/whisper.cpp/tree/master/examples/command"
+                  target="_blank"
+                  >command</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div
+          style="
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+          "
+        >
+          <p style="margin: 0; color: #666; font-size: 12px">
+            Powered by
+            <a href="https://github.com/ggerganov/whisper.cpp" target="_blank"
+              >whisper.cpp</a
+            >
+            | AI by
+            <a href="https://openai.com/whisper" target="_blank"
+              >OpenAI Whisper</a
+            >
+            | Made with love for the community
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="helpers.js"></script>
+    <script type="text/javascript">
+      // TODO: convert audio buffer to WAV
+      function setAudio(audio) {
+        //if (audio) {
+        //    // convert to 16-bit PCM
+        //    var blob = new Blob([audio], { type: 'audio/wav' });
+        //    var url = URL.createObjectURL(blob);
+        //    document.getElementById('source').src = url;
+        //    document.getElementById('audio').hidden = false;
+        //    document.getElementById('audio').loop = false;
+        //    document.getElementById('audio').load();
+        //} else {
+        //    document.getElementById('audio').hidden = true;
+        //}
+      }
+
+      function changeInput(input) {
+        if (input == "file") {
+          document.getElementById("input_file").style.display = "block";
+          document.getElementById("input_mic").style.display = "none";
+          document.getElementById("progress").style.display = "none";
+        } else {
+          document.getElementById("input_file").style.display = "none";
+          document.getElementById("input_mic").style.display = "block";
+          document.getElementById("progress").style.display = "block";
+        }
+      }
+
+      // web audio context
+      var context = null;
+
+      // audio data
+      var audio = null;
+
+      // whisper instance
+      var instance = null;
+      var nthreads = 8;
+
+      // The whisper instance is now stored in window.whisper
+      var isInitialized = false;
+      var model_whisper = "";
+
+      // helper function
+      function convertTypedArray(src, type) {
+        var buffer = new ArrayBuffer(src.byteLength);
+        var baseView = new src.constructor(buffer).set(src);
+        return new type(buffer);
+      }
+
+      //
+      // load model
+      //
+
+      let dbVersion = 1;
+      let dbName = "whisper.ggerganov.com";
+      let indexedDB =
+        window.indexedDB ||
+        window.mozIndexedDB ||
+        window.webkitIndexedDB ||
+        window.msIndexedDB;
+
+      // Get the currently selected model filename
+      function getCurrentModel() {
+        const modelButtons = document.querySelectorAll(".model-button");
+        for (const button of modelButtons) {
+          if (button.classList.contains("selected")) {
+            return button.getAttribute("data-url").split("/").pop(); // Get filename from URL
+          }
+        }
+        return "ggml-base.en.bin"; // Default fallback
+      }
+
+      function storeFS(fname, buf) {
+        // write to WASM file using FS_createDataFile
+        // Wait for Module to be properly initialized
+        function waitForModule() {
+          return new Promise((resolve) => {
+            if (
+              Module.FS_createDataFile &&
+              typeof Module.FS_createDataFile === "function"
+            ) {
+              resolve();
+            } else {
+              setTimeout(() => waitForModule().then(resolve), 100);
+            }
+          });
+        }
+
+        waitForModule()
+          .then(() => {
+            // if the file exists, delete it
+            try {
+              Module.FS_unlink(fname);
+            } catch (e) {
+              // ignore
+            }
+
+            Module.FS_createDataFile("/", fname, buf, true, true);
+
+            //model_whisper = fname;
+
+            document.getElementById("model-whisper-status").innerHTML =
+              'loaded "' + model_whisper + '"!';
+
+            printTextarea(
+              "storeFS: stored model: " + fname + " size: " + buf.length
+            );
+
+            document.getElementById("model-whisper-status").innerHTML =
+              'Model loaded: "' + model_whisper + '"!';
+          })
+          .catch((error) => {
+            printTextarea("js: failed to store file '" + fname + "': " + error);
+          });
+      }
+
+      function loadFile(event, fname) {
+        var file = event.target.files[0] || null;
+        if (file == null) {
+          return;
+        }
+
+        printTextarea(
+          "loadFile: loading model: " +
+            file.name +
+            ", size: " +
+            file.size +
+            " bytes"
+        );
+        printTextarea("loadFile: please wait ...");
+
+        var reader = new FileReader();
+        reader.onload = function (event) {
+          var buf = new Uint8Array(reader.result);
+          storeFS(fname, buf);
+        };
+        reader.readAsArrayBuffer(file);
+
+        document.getElementById("model-whisper-status").innerHTML =
+          "loaded model: " + file.name;
+      }
+
+      function loadWhisper(model) {
+        let urls = {
+          "tiny.en":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin",
+          tiny: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+          "base.en":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin",
+          base: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+          "small.en":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin",
+          small:
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+          "medium.en":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en.bin",
+          medium:
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
+          large:
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large.bin",
+
+          "tiny-en-q5_1":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin",
+          "tiny-q5_1":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin",
+          "base-en-q5_1":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q5_1.bin",
+          "base-q5_1":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin",
+          "small-en-q5_1":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en-q5_1.bin",
+          "small-q5_1":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin",
+          "medium-en-q5_0":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en-q5_0.bin",
+          "medium-q5_0":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium-q5_0.bin",
+          "large-q5_0":
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-q5_0.bin",
+        };
+
+        let sizes = {
+          "tiny.en": 75,
+          tiny: 75,
+          "base.en": 142,
+          base: 142,
+          "small.en": 466,
+          small: 466,
+
+          "tiny-en-q5_1": 31,
+          "tiny-q5_1": 31,
+          "base-en-q5_1": 57,
+          "base-q5_1": 57,
+          "small-en-q5_1": 182,
+          "small-q5_1": 182,
+          "medium-en-q5_0": 515,
+          "medium-q5_0": 515,
+          "large-q5_0": 1030,
+        };
+
+        let url = urls[model];
+        let dst = "whisper.bin";
+        let size_mb = sizes[model];
+
+        model_whisper = model;
+
+        document.getElementById("model-whisper-status").innerHTML =
+          "loading model: " + model;
+
+        cbProgress = function (p) {
+          let el = document.getElementById("fetch-whisper-progress");
+          el.innerHTML = Math.round(100 * p) + "%";
+        };
+
+        cbCancel = function () {
+          var el;
+          el = document.getElementById("model-whisper-status");
+          if (el) el.innerHTML = "";
+        };
+
+        loadRemote(
+          url,
+          dst,
+          size_mb,
+          cbProgress,
+          storeFS,
+          cbCancel,
+          printTextarea
+        );
+      }
+
+      //
+      // audio file
+      //
+
+      const kMaxAudio_s = 30 * 60; // 30 minutes - same as official demo
+      const kMaxRecording_s = 2 * 60;
+      const kSampleRate = 16000;
+
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+      window.OfflineAudioContext =
+        window.OfflineAudioContext || window.webkitOfflineAudioContext;
+
+      function loadAudio(event) {
+        if (!context) {
+          context = new AudioContext({
+            sampleRate: kSampleRate,
+            channelCount: 1,
+            echoCancellation: false,
+            autoGainControl: true,
+            noiseSuppression: true,
+          });
+        }
+
+        var file = event.target.files[0] || null;
+        if (file == null) {
+          return;
+        }
+
+        printTextarea(
+          "js: loading audio: " + file.name + ", size: " + file.size + " bytes"
+        );
+        printTextarea("js: please wait ...");
+
+        var reader = new FileReader();
+        reader.onload = function (event) {
+          var buf = new Uint8Array(reader.result);
+
+          context.decodeAudioData(
+            buf.buffer,
+            function (audioBuffer) {
+              var offlineContext = new OfflineAudioContext(
+                audioBuffer.numberOfChannels,
+                audioBuffer.length,
+                audioBuffer.sampleRate
+              );
+              var source = offlineContext.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(offlineContext.destination);
+              source.start(0);
+
+              offlineContext.startRendering().then(function (renderedBuffer) {
+                audio = renderedBuffer.getChannelData(0);
+                printTextarea("js: audio loaded, size: " + audio.length);
+
+                // truncate to first 30 seconds
+                if (audio.length > kMaxAudio_s * kSampleRate) {
+                  audio = audio.slice(0, kMaxAudio_s * kSampleRate);
+                  printTextarea(
+                    "js: truncated audio to first " + kMaxAudio_s + " seconds"
+                  );
+                }
+
+                setAudio(audio);
+              });
+            },
+            function (e) {
+              printTextarea("js: error decoding audio: " + e);
+              audio = null;
+              setAudio(audio);
+            }
+          );
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      //
+      // microphone
+      //
+
+      var mediaRecorder = null;
+      var doRecording = false;
+      var startTime = 0;
+
+      function stopRecording() {
+        doRecording = false;
+      }
+
+      // record up to kMaxRecording_s seconds of audio from the microphone
+      // check if doRecording is false every 1000 ms and stop recording if so
+      // update progress information
+      function startRecording() {
+        if (!context) {
+          context = new AudioContext({
+            sampleRate: kSampleRate,
+            channelCount: 1,
+            echoCancellation: false,
+            autoGainControl: true,
+            noiseSuppression: true,
+          });
+        }
+
+        document.getElementById("start").disabled = true;
+        document.getElementById("stop").disabled = false;
+
+        document.getElementById("progress-bar").style.width = "0%";
+        document.getElementById("progress-text").innerHTML = "0%";
+
+        doRecording = true;
+        startTime = Date.now();
+
+        var chunks = [];
+        var stream = null;
+
+        navigator.mediaDevices
+          .getUserMedia({ audio: true, video: false })
+          .then(function (s) {
+            stream = s;
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = function (e) {
+              chunks.push(e.data);
+            };
+            mediaRecorder.onstop = function (e) {
+              var blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
+              chunks = [];
+
+              document.getElementById("start").disabled = false;
+              document.getElementById("stop").disabled = true;
+
+              var reader = new FileReader();
+              reader.onload = function (event) {
+                var buf = new Uint8Array(reader.result);
+
+                context.decodeAudioData(
+                  buf.buffer,
+                  function (audioBuffer) {
+                    var offlineContext = new OfflineAudioContext(
+                      audioBuffer.numberOfChannels,
+                      audioBuffer.length,
+                      audioBuffer.sampleRate
+                    );
+                    var source = offlineContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(offlineContext.destination);
+                    source.start(0);
+
+                    offlineContext
+                      .startRendering()
+                      .then(function (renderedBuffer) {
+                        audio = renderedBuffer.getChannelData(0);
+                        printTextarea(
+                          "js: audio recorded, size: " + audio.length
+                        );
+
+                        // truncate to first 30 seconds
+                        if (audio.length > kMaxRecording_s * kSampleRate) {
+                          audio = audio.slice(0, kMaxRecording_s * kSampleRate);
+                          printTextarea(
+                            "js: truncated audio to first " +
+                              kMaxRecording_s +
+                              " seconds"
+                          );
+                        }
+                        setAudio(audio);
+                      });
+                  },
+                  function (e) {
+                    printTextarea("js: error decoding audio: " + e);
+                    audio = null;
+                    setAudio(audio);
+                  }
+                );
+              };
+
+              reader.readAsArrayBuffer(blob);
+            };
+            mediaRecorder.start();
+          })
+          .catch(function (err) {
+            printTextarea("js: error getting audio stream: " + err);
+          });
+
+        var interval = setInterval(function () {
+          if (!doRecording) {
+            clearInterval(interval);
+            mediaRecorder.stop();
+            stream.getTracks().forEach(function (track) {
+              track.stop();
+            });
+          }
+
+          document.getElementById("progress-bar").style.width =
+            (100 * (Date.now() - startTime)) / 1000 / kMaxRecording_s + "%";
+          document.getElementById("progress-text").innerHTML =
+            ((100 * (Date.now() - startTime)) / 1000 / kMaxRecording_s).toFixed(
+              0
+            ) + "%";
+        }, 1000);
+
+        printTextarea("js: recording ...");
+
+        setTimeout(function () {
+          if (doRecording) {
+            printTextarea(
+              "js: recording stopped after " + kMaxRecording_s + " seconds"
+            );
+            stopRecording();
+          }
+        }, kMaxRecording_s * 1000);
+      }
+
+      //
+      // transcribe
+      //
+
+      var nthreads = 8;
+
+      function changeThreads(value) {
+        nthreads = parseInt(value, 10);
+        document.getElementById("threads-value").innerHTML = nthreads;
+      }
+
+      function onProcess(translate) {
+        // Check if Module is ready and has the necessary functions
+        if (!window.Module || !window.Module.ready) {
+          printTextarea("js: Module not ready yet");
+          printTextarea("js: Please wait for the module to fully load");
+          return;
+        }
+
+        if (!instance) {
+          // Try different model file names that might be loaded
+          var modelNames = ["whisper.bin", "ggml-base.en.bin", "base.en"];
+          var modelLoaded = false;
+
+          for (var i = 0; i < modelNames.length; i++) {
+            try {
+              // Use Module.init (official approach) for high-memory build
+              if (window.Module && window.Module.init) {
+                instance = window.Module.init(modelNames[i]);
+              } else if (window.whisper && window.whisper.init) {
+                // Fallback to window.whisper.init
+                instance = window.whisper.init(modelNames[i]);
+              }
+
+              if (instance) {
+                printTextarea("js: whisper initialized, instance: " + instance);
+                printTextarea("js: using model: " + modelNames[i]);
+                document.getElementById("status-message").textContent =
+                  "Model loaded: " + modelNames[i];
+                modelLoaded = true;
+                break;
+              }
+            } catch (e) {
+              console.log("Failed to load model: " + modelNames[i]);
+            }
+          }
+
+          if (!modelLoaded) {
+            printTextarea("js: failed to initialize whisper - no model found");
+            return;
+          }
+        }
+
+        if (!audio) {
+          printTextarea("js: no audio data");
+          return;
+        }
+
+        printTextarea("");
+        printTextarea("js: processing - this might take a while ...");
+        printTextarea("");
+
+        setTimeout(function () {
+          // Use the official 5-parameter signature for high-memory build
+          try {
+            if (window.Module && window.Module.full_default) {
+              // Official approach: Module.full_default with 5 parameters
+              var ret = window.Module.full_default(
+                instance,
+                audio,
+                document.getElementById("language").value,
+                nthreads,
+                translate
+              );
+              console.log(
+                "js: Module.full_default (5 params) returned: " + ret
+              );
+              if (ret !== undefined) {
+                printTextarea("js: whisper returned: " + ret);
+              }
+            } else if (window.whisper && window.whisper.full_default) {
+              // Fallback: try 3-parameter signature for older builds
+              var ret = window.whisper.full_default(
+                audio,
+                document.getElementById("language").value,
+                translate
+              );
+              console.log(
+                "js: whisper.full_default (3 params) returned: " + ret
+              );
+              if (ret !== undefined) {
+                printTextarea("js: whisper returned: " + ret);
+              }
+            } else {
+              printTextarea("js: no full_default function found");
+            }
+
+            // Show download button after transcription completes
+            setTimeout(function () {
+              const downloadBtn = document.getElementById("download-btn");
+              const outputTextarea = document.getElementById("output");
+              if (
+                downloadBtn &&
+                outputTextarea &&
+                outputTextarea.value &&
+                outputTextarea.value.trim().length > 10
+              ) {
+                downloadBtn.style.display = "inline-block";
+                console.log("Download button shown after transcription");
+              }
+            }, 500);
+          } catch (e) {
+            console.error("Function call failed:", e);
+            printTextarea("js: failed to call full_default - " + e.message);
+          }
+        }, 100);
+      }
+
+      // Download functionality
+      let currentAudioFilename = "";
+
+      // Monitor textarea for transcription completion
+      function monitorTranscription() {
+        const outputTextarea = document.getElementById("output");
+        const downloadBtn = document.getElementById("download-btn");
+
+        if (outputTextarea && downloadBtn) {
+          // Show download button when there's transcription text
+          const observer = new MutationObserver(() => {
+            const text = outputTextarea.value;
+            // Show button if there's any meaningful transcription text
+            if (text && text.trim() && text.length > 10) {
+              downloadBtn.style.display = "inline-block";
+              console.log("Download button shown - transcription detected");
+            }
+          });
+
+          // Start observing the textarea
+          observer.observe(outputTextarea, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+          });
+
+          // Also monitor value changes
+          outputTextarea.addEventListener("input", () => {
+            const text = outputTextarea.value;
+            // Show button if there's any meaningful transcription text
+            if (text && text.trim() && text.length > 10) {
+              downloadBtn.style.display = "inline-block";
+              console.log("Download button shown - input detected");
+            }
+          });
+
+          // Check immediately if there's already content
+          setTimeout(() => {
+            const text = outputTextarea.value;
+            if (text && text.trim() && text.length > 10) {
+              downloadBtn.style.display = "inline-block";
+              console.log("Download button shown - existing content");
+            }
+          }, 1000);
+        }
+      }
+
+      // Download transcription function
+      function downloadTranscription() {
+        const outputTextarea = document.getElementById("output");
+        const rawText = outputTextarea.value;
+
+        if (!rawText || !rawText.trim()) {
+          alert("No transcription available to download!");
+          return;
+        }
+
+        // Filter out console messages and keep only transcription lines
+        const lines = rawText.split("\n");
+        const transcriptionLines = [];
+
+        for (let line of lines) {
+          line = line.trim();
+
+          // Skip empty lines
+          if (!line) continue;
+
+          // Skip obvious console/debug messages
+          if (
+            line.startsWith("js:") ||
+            line.startsWith("system_info:") ||
+            line.includes("processing - this might take a while") ||
+            line.includes("whisper returned:") ||
+            line.includes("Build time") ||
+            line.includes("Commit") ||
+            line.includes("load time") ||
+            line.includes("total time") ||
+            line.includes("threads") ||
+            line.includes("processors") ||
+            line.includes("samples")
+          ) {
+            continue;
+          }
+
+          // Keep lines that contain timestamps OR seem like actual speech
+          // Whisper timestamps look like: [00:00.000 --> 00:05.000] or just spoken text
+          if (
+            line.match(/\[\d{2}:\d{2}\.\d{3}/) || // Contains timestamp
+            (line.length > 5 &&
+              !line.includes("=") &&
+              !line.includes("|") &&
+              !line.startsWith("whisper") &&
+              !line.includes("http") &&
+              line.split(" ").length > 1)
+          ) {
+            // Looks like actual speech (multiple words)
+            transcriptionLines.push(line);
+          }
+        }
+
+        // Join the clean transcription lines
+        const cleanText = transcriptionLines.join("\n");
+
+        if (!cleanText.trim()) {
+          // Fallback: if no clean text found, offer to download everything
+          console.log(
+            "No clean transcription found. Raw text sample:",
+            rawText.substring(0, 200)
+          );
+          const useRaw = confirm(
+            "No clean transcription found. Download raw output instead?"
+          );
+          if (!useRaw) return;
+
+          // Use raw text as fallback
+          const fallbackText = rawText;
+
+          // Generate filename
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const filename = currentAudioFilename
+            ? currentAudioFilename.replace(/\.[^/.]+$/, "") + "_raw_output.txt"
+            : `whisper_raw_output_${timestamp}.txt`;
+
+          // Create and trigger download
+          const blob = new Blob([fallbackText], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          console.log("Downloaded raw output:", filename);
+          alert(`Downloaded raw output: ${filename}`);
+          return;
+        }
+
+        // Generate filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const filename = currentAudioFilename
+          ? currentAudioFilename.replace(/\.[^/.]+$/, "") + "_transcription.txt"
+          : `whisper_transcription_${timestamp}.txt`;
+
+        // Create and trigger download
+        const blob = new Blob([cleanText], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        console.log("Downloaded clean transcription:", filename);
+        console.log(
+          "Original lines:",
+          lines.length,
+          "Clean lines:",
+          transcriptionLines.length
+        );
+        alert(`Downloaded clean transcription: ${filename}`);
+      }
+
+      // Setup download functionality when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        // Show server running status immediately
+        document.getElementById("status-message").textContent =
+          "Server running - Whisper not loaded";
+
+        monitorTranscription();
+
+        // Setup download button click
+        const downloadBtn = document.getElementById("download-btn");
+        if (downloadBtn) {
+          downloadBtn.addEventListener("click", downloadTranscription);
+        }
+
+        // Capture audio filename
+        const fileInput = document.getElementById("file");
+        if (fileInput) {
+          fileInput.addEventListener("change", function (e) {
+            if (e.target.files && e.target.files[0]) {
+              currentAudioFilename = e.target.files[0].name;
+              console.log("Audio file selected:", currentAudioFilename);
+            }
+          });
+        }
+      });
+    </script>
+    <script type="text/javascript">
+      // Define Module object before main.js loads (required for official build)
+      var Module = {
+        print: printTextarea,
+        printErr: printTextarea,
+        setStatus: function (text) {
+          printTextarea("js: " + text);
+        },
+        monitorRunDependencies: function (left) {},
+        onRuntimeInitialized: function () {
+          console.log("Module runtime initialized successfully");
+          Module.ready = true; // Add ready flag
+          document.getElementById("status-message").textContent =
+            "Whisper is ready! Please select a model.";
+        },
+      };
+    </script>
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript">
+      // Module is initialized automatically when main.js loads
+      console.log("Main.js has been loaded with Module configuration");
+    </script>
+  </body>
+</html>
